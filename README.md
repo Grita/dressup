@@ -11,4 +11,4 @@ or
 #### PS
 - You can only preview one (1) item at a time.
 - You can't preview hair styles nor lenses.
-- You can't preview incompatible items, lkie costumes for wrong class archetypes.
+- You can't preview incompatible items, like costumes for wrong class archetypes.
