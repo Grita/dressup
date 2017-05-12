@@ -6,6 +6,8 @@ Allows to preview equipment directly on your character.
 #### Usage
 - Click on your portrait in the inventory window and enter the item you want to preview.  
 or
+- Use the `/dressup ClassID|ClassName|Name` chat command.
+or
 - Ctrl+Click linked items in the chat to preview them.
 
 #### PS

@@ -17,10 +17,28 @@ function SD_DRESSUP_ON_INIT(addon, frame)
   
   _G['SD_DRESSUP_SLI_OLD'] = SLI;
   _G['SLI'] = SD_DRESSUP_SLI;
+  _G['SD_DRESSUP_ON_CHAT_OLD'] = ui.Chat
+  
+  ui.Chat = SD_DRESSUP_ON_CHAT
   
   SD_DRESSUP_LOADED = true
   
   ui.SysMsg('-> sd_dressup')
+end
+
+function SD_DRESSUP_ON_CHAT(args)
+  SD_DRESSUP_ON_CHAT_OLD(args)
+  
+  args = args:gsub('^/[rwpysg] ', '')
+  
+  if string.sub(args, 1, 9) == '/dressup ' then
+    SD_DRESSUP_APPLY(args:gsub('/dressup ', ''))
+  end
+  
+  local f = GET_CHATFRAME();
+  f:GetChild('mainchat'):ShowWindow(0);
+  f:ShowWindow(0);
+  ui.CloseFrame("chat_emoticon");
 end
 
 function SD_DRESSUP_SLI(props, clsid)
