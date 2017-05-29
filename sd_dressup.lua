@@ -32,7 +32,8 @@ function SD_DRESSUP_ON_CHAT(args)
   args = args:gsub('^/[rwpysg] ', '')
   
   if string.sub(args, 1, 9) == '/dressup ' then
-    SD_DRESSUP_APPLY(args:gsub('/dressup ', ''))
+    args = args:gsub('/dressup ', '');
+    SD_DRESSUP_APPLY(args)
   end
   
   local f = GET_CHATFRAME();
@@ -46,7 +47,7 @@ function SD_DRESSUP_SLI(props, clsid)
     local obj = GetClassByType('Item', clsid);
     
     if obj ~= nil and obj.ItemType == 'Equip' then
-      SD_DRESSUP_APPLY(clsid);
+      SD_DRESSUP_APPLY(clsid, props);
     end
     
     return
@@ -102,11 +103,31 @@ function SD_DRESSUP_PRINT_RESULTS(res)
   CHAT_SYSTEM(str);
 end
 
-function SD_DRESSUP_APPLY(value)
+function SD_DRESSUP_PRINT_COLORS(clsid, res)
+  local tbl = {};
+  
+  for k, v in pairs(res) do
+    k = string.format("{a SD_DRESSUP_APPLY %d:%s}{#0000FF}%s{/}{/}", clsid, k, k);
+    table.insert(tbl, k);
+  end
+  
+  CHAT_SYSTEM('Available colors are:{nl}' .. table.concat(tbl, ', '));
+end
+
+function SD_DRESSUP_APPLY(value, args)
   local obj = nil;
   
   if value == '' then
     return
+  end
+  
+  if type(args) ~= 'string' then
+    local argIdx = string.find(value, '#');
+    
+    if argIdx then
+      args = string.sub(value, argIdx + 1);
+      value = string.sub(value, 0, argIdx - 1);
+    end
   end
   
   if string.match(value, '^[0-9]+$') then
@@ -130,15 +151,102 @@ function SD_DRESSUP_APPLY(value)
     return;
   end
   
-  local slot = 'ES_' .. obj.DefaultEqpSlot;
+  if obj.ClassType == 'Hair' then
+    SD_DRESSUP_APPLY_HAIR(obj, args);
+  else
+    local slot = 'ES_' .. obj.DefaultEqpSlot;
+    
+    if slot == 'ES_LENS' then
+      slot = 'ES_LAST'
+    end
+    
+    GetMyActor():GetSystem():ChangeEquipApperance(_G[slot], obj.ClassID);
+  end
+end
+
+function SD_DRESSUP_PRINT_COLORS(clsid, res)
+  local str = '';
+  local tlen, wlen = 0, 0;
   
-  if slot == 'ES_LENS' then
-    slot = 'ES_LAST'
+  for k, v in pairs(res) do
+    wlen = string.len(k);
+    tlen = tlen + wlen;
+    
+    k = string.format("{a SLI %s %d}{#FFFFFF}%s{/}{/}", k, clsid, k);
+    
+    str = str .. ', ';
+    
+    if tlen > 25 then
+      str = str .. '{nl}';
+      tlen = wlen;
+    end
+    
+    str = str .. k;
   end
   
-  GetMyActor():GetSystem():ChangeEquipApperance(_G[slot], obj.ClassID);
+  str = string.sub(str, 3);
+  
+  CHAT_SYSTEM('Available colors are:{nl}' .. str);
+end
+
+function SD_DRESSUP_APPLY_HAIR(obj, arg)
+  local name = obj.StringArg;
+  
+  local curIdx = item.GetHeadIndex();
+  local curColor;
+  
+  local clsList = imcIES.GetClassList('HairType');
+  local genderNode = clsList:GetClass(GetMyPCObject().Gender);
+  local typeNodes = genderNode:GetSubClassList();
+  local count = typeNodes:Count();
+  
+  local itemList = {};
+  
+  local defaultIdx;
+  
+  for i = 0, count - 1 do
+    local node = typeNodes:GetByIndex(i);
+    
+    local nodeIdx = imcIES.GetINT(node, 'Index');
+    local nodeName = imcIES.GetString(node, 'EngName');
+    local nodeColor = string.lower(imcIES.GetString(node, 'ColorE'));
+    
+    if nodeName == name then
+      itemList[nodeColor] = nodeIdx;
+      
+      if defaultIdx == nil then
+        defaultIdx = nodeIdx;
+      end
+    end
+    
+    if nodeIdx == curIdx then
+      curColor = imcIES.GetString(node, 'ColorE');
+    end
+  end
+  
+  if defaultIdx == nil then
+    ui.SysMsg('Nothing found.');
+    return;
+  end
+  
+  local color;
+  
+  if type(arg) == 'string' and arg ~= '' then
+    color = string.lower(arg);
+  else
+    color = curColor;
+    SD_DRESSUP_PRINT_COLORS(obj.ClassID, itemList);
+  end
+  
+  local idx = itemList[color];
+  
+  if idx == nil then
+    idx = defaultIdx;
+  end
+  
+  item.ChangeHeadAppearance(idx);
 end
 
 function SD_DRESSUP_PROMPT()
-  INPUT_STRING_BOX_CB(nil, 'Item name, ClassName or ClassID', 'SD_DRESSUP_APPLY', '', nil, 0, 512);
+  INPUT_STRING_BOX_CB(nil, 'Item name, ClassName or ClassID', 'SD_DRESSUP_APPLY', '', nil, nil, 512);
 end
