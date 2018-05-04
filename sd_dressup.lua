@@ -154,13 +154,15 @@ function SD_DRESSUP_APPLY(value, args)
   if obj.ClassType == 'Hair' then
     SD_DRESSUP_APPLY_HAIR(obj, args);
   else
-    local slot = 'ES_' .. obj.DefaultEqpSlot;
+    local slot = obj.DefaultEqpSlot;
     
-    if slot == 'ES_LENS' then
-      slot = 'ES_LAST'
+    if obj.DefaultEqpSlot == 'RH LH' then
+      slot = 'RH';
     end
     
-    GetMyActor():GetSystem():ChangeEquipApperance(_G[slot], obj.ClassID);
+    slot = item.GetEquipSpotNum(slot);
+    
+    GetMyActor():GetSystem():ChangeEquipApperance(slot, obj.ClassID);
   end
 end
 
