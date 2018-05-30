@@ -43,7 +43,7 @@ function SD_DRESSUP_ON_CHAT(args)
 end
 
 function SD_DRESSUP_SLI(props, clsid)
-  if keyboard.IsPressed(KEY_CTRL) == 1 then
+  if keyboard.IsKeyPressed('LCTRL') == 1 then
     local obj = GetClassByType('Item', clsid);
     
     if obj ~= nil and obj.ItemType == 'Equip' then
